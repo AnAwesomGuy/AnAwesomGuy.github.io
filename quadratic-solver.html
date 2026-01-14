@@ -302,7 +302,7 @@ globalThis["solve"] = function solve() {
 					)
 				} else { // b is 0, so we omit the first fraction
 					addChildList(zeros1, connect(frac2SqrtText, sqrtText(radic, `&minus;${frac2Text}`)))
-					if (frac2[1] != 1) {
+					if (frac2[1] != 1 || radic != 1) {
 						zeros1.classList.add("long-zeros")
 						addChildList(zeros1, connect(withImaginary(-frac2Num, imaginary), withImaginary(frac2Num, imaginary)))
 					}
@@ -455,7 +455,7 @@ function sqrtFracString(radicand, coeff, imaginary, denominator) {
 }
 function addChildList(element, ...texts) {
 	for (const text of texts)
-		if (text) {
+		if (text !== null || text !== "") {
 			var li = document.createElement("li")
 			element.appendChild(li)
 			li.innerHTML = text
