@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<!--
+(c) 2025 AnAwesomGuy
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
+<html>
+	<head>
+		<title>Quadratic Equations</title>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style type="text/css">
+:root {
+	--color-primary: #222;
+	--color-secondary: #080;
+	--color-background: #eee;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-primary: #eee;
+		--color-secondary: #bf3;
+		--color-background: #111;
+	}
+}
+html {
+	width: 100%;
+}
+body {
+	margin: 40px auto;
+	background-color: var(--color-background);
+	color: var(--color-primary);
+	max-width: 650px;
+	line-height: 1.6;
+	font-size: 18px;
+	padding: 0px 15px;
+	font-family: serif;
+}
+h1 {
+	line-height: 1.2;
+	text-align: center;
+}
+h2 {
+	line-height: 1.2;
+	padding: 0.3em;
+	margin-bottom: 0
+}
+ul, p {
+	margin: 0.5em;
+	margin-top: 0
+}
+hr {
+	margin-inline: -0.5em;
+}
+input[type=number] {
+	width: 5em;
+}
+sup {
+	line-height: normal;
+	padding-left: 0.1em;
+}
+ul {
+	list-style-type: none;
+	display: table;
+	padding: 0;
+}
+ul li:first-of-type {
+	display: inline-table;
+}
+ul li:last-child, ul.long-zeros li:nth-last-child(2) {
+	font-weight: bold;
+	color: var(--color-secondary);
+}
+ul li:before {
+	content: "\00a0=\00a0";
+	white-space: pre;
+}
+#results {
+	margin-top: 2em
+}
+h2 > span {
+	margin-left: 10px;
+	font-size: 13px;
+	font-weight: initial;
+	display: inline-block;
+	vertical-align: bottom;
+}
+.btn-large {
+	font-size: 1.2rem;
+	font-weight: bold;
+}
+.boxed {
+	margin: 1rem;
+	padding: .5em 1em;
+	border: 1px solid #ccc;
+}
+.warning {
+	color: red;
+	margin-left: 1rem;
+}
+.sqrt {
+	display: inline-block;
+	vertical-align: middle;
+	border-top: 1px solid;
+	border-left: 1px solid;
+	transform: skew(-15deg);
+	transform-origin: bottom left;
+	margin: 0 10px;
+	position: relative;
+}
+
+.sqrt:before {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	height: 40%;
+	width: 5px;
+	left: -6px;
+	border-top: 1px solid;
+	border-right: 1px solid;
+	transform: skew(30deg);
+	transform-origin: bottom right;
+}
+.radicand {
+	display: inline-block;
+	padding-left: 0.3em;
+	transform: skew(15deg);
+}
+/* for fractions:
+ * 7&nbsp;<span class="frac"><sup>42</sup><span>&frasl;</span><sub>73</sub></span>
+ */
+span.frac {
+	display: inline-block;
+	text-align: center;
+	vertical-align: middle;
+}
+span.frac > sup, span.frac > sub {
+	display: block;
+	font: inherit;
+	padding: 0em 0.3em;
+	line-height: 1.4;
+}
+span.frac > sup {border-bottom: 0.08em solid}
+span.frac > span, .hidden {display: none}
+		</style>
+	</head>
+	<body>
+		<h1>Quadratic Equations</h1>
+		<div class="boxed">
+			<p>
+				<var>f</var>&nbsp;(<var>x</var>) = <var>ax</var><sup>2</sup> + <var>bx</var> + <var>c</var>
+			</p>
+			<p id="equation"/>
+		</div>
+		<p>
+			<var>a</var> = <input type="number" id="a" oninput="updateInput(this, 'a');" onblur="resetInput(this, 'a')" onchange="solve()" />
+		<hr><p>
+			<var>b</var> = <input type="number" id="b" oninput="updateInput(this, 'b')" onblur="resetInput(this, 'b')" onchange="solve()" />
+		<hr><p>
+			<var>c</var> = <input type="number" id="c" oninput="updateInput(this, 'c')" onblur="resetInput(this, 'c')" onchange="solve()" />
+		<hr>
+		<script>
+document.getElementById("a").value = globalThis["a"] = 1
+document.getElementById("b").value = globalThis["b"] = 0
+document.getElementById("c").value = globalThis["c"] = 0
+function equation(inside) {
+	var a = globalThis["a"], b = globalThis["b"], c = globalThis["c"]
+
+	var s = ''
+
+	if (a != 0)
+		s += a == 1 ? inside + '<sup>2</sup>' : (a == -1 ? "-" : a) + inside + '<sup>2</sup>'
+
+	if (b > 0)
+		s += b == 1 ? '&nbsp;+ ' + inside : '&nbsp;+ ' + b + inside
+	else if (b < 0)
+		s += b == -1 ? '&nbsp;&minus; ' + inside : '&nbsp;&minus; ' + -b + inside
+
+	if (c > 0)
+		s += '&nbsp;+ ' + c
+	else if (c < 0)
+		s += '&nbsp;&minus; ' + -c
+	return s
+}
+function update() {
+	document.getElementById('equation').innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation('<var>x</var>')
+}
+globalThis["updateInput"] = function(input, name) {
+	var v = input.valueAsNumber
+	if (isNaN(v)) {
+		var s = input.value.split('/')
+		if (s.length == 2) {
+			var s0 = +s[0], s1 = +s[1]
+			if (!isNaN(s0) && s1)
+				v = s0 / s1
+		}
+	}
+	var warning = document.getElementById("warning" + name.toUpperCase())
+	if ((name == "a" && v == 0) || isNaN(v)) {
+		if (!warning) {
+			warning = document.createElement("span")
+			warning.id = "warning" + name.toUpperCase()
+			warning.className = "warning"
+			warning.innerHTML = ` Invalid value for <var>${name}</var>!`
+			input.after(warning)
+		}
+	} else {
+		globalThis[name] = v
+		document.getElementById("warning" + name.toUpperCase())?.remove()
+		update()
+	}
+}
+globalThis["resetInput"] = function resetInput(input, name) {
+	document.getElementById("warning" + name.toUpperCase())?.remove()
+	input.value = globalThis[name]
+}
+globalThis["solve"] = function solve() {
+	var a = globalThis["a"], b = globalThis["b"], c = globalThis["c"]
+	document.getElementById("results")?.remove()
+	var results = document.createElement("div")
+	results.id = "results"
+
+	// vertex
+	var headingV = document.createElement("h2")
+	results.appendChild(headingV)
+	headingV.innerText = "Vertex"
+	headingV.appendChild(document.createElement("hr"))
+	var vertex1 = document.createElement("p")
+	headingV.after(vertex1)
+	var nb2a = fraction("<var>b</var>", "2<var>a</var>", "- ")
+	var resultH, resultK
+	var h = b / (-2 * a), truncH = truncate(h), intH = Number.isInteger(h)
+	vertex1.innerHTML = `${nb2a} =&nbsp;-(${fraction(b, `2(${a})`)}) =&nbsp;`
+	vertex1.innerHTML += intH ?
+		(resultH = h) :
+		((resultH = fancyFraction(...reduce(b, -2 * a))) + " =&nbsp;" + truncH)
+	var vertex2 = document.createElement("p")
+	vertex1.after(vertex2)
+	var [kN, kD] = toFraction(a * h * h + b * h + c)
+	var k = kN / kD, truncK = truncate(k), intK = (kN % kD) == 0
+	vertex2.innerHTML = `<var>f</var>&nbsp;(${nb2a}) =&nbsp;${equation(`(${resultH})`)} =&nbsp;` + (intK ? (resultK = k) : (`${resultK = fancyFraction(kN, kD)} =&nbsp;${truncK}`))
+	var vertex = document.createElement("p")
+	vertex1.before(vertex)
+	vertex.innerHTML = `The vertex is at: <b>(${resultH}, ${resultK})</b>`
+	if (!intH || !intK)
+		vertex.innerHTML += ` or <b>(${truncH}, ${truncK})</b>`
+
+	// zeros
+	var headingZ = document.createElement("h2")
+	results.appendChild(headingZ)
+	headingZ.innerText = "Zeros (roots)"
+	headingZ.style["line-height"] = "1"
+	var note = document.createElement("span")
+	note.style.cssText = "margin-left: 10px; font-size: 13px; font-weight: initial; display: inline-block; vertical-align: bottom"
+	note.innerHTML = '<span class="hidden">; note: </span>results, especially fractions, may be slightly innaccurate due to floating-point errors'
+	headingZ.appendChild(note)
+	headingZ.appendChild(document.createElement("hr"))
+	var zeros1 = document.createElement("ul")
+	headingZ.after(zeros1)
+	var discriminant = b * b - (4 * a * c), a2 = 2 * a, sqrtDisc = Math.sqrt(Math.abs(discriminant))
+	zeros1.innerHTML = '<var style="display: table-cell">x</var><span class="hidden"> =<br></span>'
+	addChildList(zeros1,
+		fraction('-<var>b</var>&nbsp;&plusmn;&nbsp;' + sqrtText('<var>b</var><sup>2</sup>&nbsp;&minus;&nbsp;4<var>ac</var>'), '2<var>a</var>'),
+		fraction(`-(${b})&nbsp;&plusmn;&nbsp;` + sqrtText(`(${b})<sup>2</sup>&nbsp;&minus;&nbsp;4(${a})(${c})`), `2(${a})`))
+	if (Number.isInteger(discriminant)) {
+		if (!discriminant) { // if the discriminant is 0, the zero is at the vertex
+			addChildList(zeros1, resultH)
+			if (!intH)
+				addChildList(zeros1, truncH)
+		} else {
+			// discriminant = BigInt(descriminant)
+			var imaginary = discriminant < 0, [radic, coeff] = simplifySqrt(imaginary ? -discriminant : discriminant)
+			addChildList(zeros1, fraction(`${-b}&nbsp;&plusmn;&nbsp;${sqrtText(discriminant)}`, a2))
+			if (radic == 1 && !imaginary) { // result is rational (only one term)
+				var coeffB = coeff - b, bCoeff = -b - coeff
+				var reduced1 = reduce(coeffB, a2), reduced2 = reduce(bCoeff, a2)
+				addChildList(zeros1,
+					fraction(`${-b}&nbsp;&plusmn;&nbsp;${coeff}`, a2),
+					connect(
+						fraction(coeffB, a2),
+						fraction(bCoeff, a2)
+					),
+					connect(
+						fancyFraction(...reduced1),
+						fancyFraction(...reduced2)
+					))
+				if (reduced1[1] != 1 || reduced2[1] != 1) {
+					zeros1.classList.add("long-zeros")
+					addChildList(zeros1, connect(coeffB / a2, bCoeff / a2))
+				}
+			} else {
+				var a2Abs = Math.abs(a2)
+				var frac2 = reduce(coeff, a2Abs), frac2Text = withImaginary(fancyFraction(...frac2), imaginary), frac2SqrtText = sqrtText(radic, frac2Text)
+				var frac2Num = frac2[0] / frac2[1] * Math.sqrt(radic)
+				addChildList(zeros1, fraction(`${-b}&nbsp;&plusmn;&nbsp;${sqrtText(radic, withImaginary(coeff, imaginary))}`, a2))
+				if (b) {
+					zeros1.classList.add("long-zeros")
+					var frac1 = reduce(-b, a2Abs), frac1Text = fancyFraction(...frac1), frac1Num = -b / a2Abs
+					addChildList(zeros1,
+						connect(`${frac1Text} + ${frac2SqrtText}`, `${frac1Text} - ${frac2SqrtText}`),
+						imaginary ? connect(`${frac1Num} + ${withImaginary(frac2Num, imaginary)}`, `${frac1Num} - ${withImaginary(frac2Num, imaginary)}`) :
+							connect(frac1Num + frac2Num, frac1Num - frac2Num)
+					)
+				} else { // b is 0, so we omit the first fraction
+					addChildList(zeros1, connect(frac2SqrtText, sqrtText(radic, `&minus;${frac2Text}`)))
+					if (frac2[1] != 1) {
+						zeros1.classList.add("long-zeros")
+						addChildList(zeros1, connect(withImaginary(-frac2Num, imaginary), withImaginary(frac2Num, imaginary)))
+					}
+				}
+			}
+		}
+	} else {
+		zeros1.classList.add("long-zeros")
+		var [discN, discD] = toFraction(discriminant), discriminantTxt = fancyFraction(discN, discD)
+		var [[radic, [coeff, i]], denom] = simplifySqrtFrac(discN, discD)
+		addChildList(zeros1,
+			fraction(`${-b}&nbsp;&plusmn;&nbsp;${sqrtText(discriminantTxt)}`, a2),
+			fraction((b == 0 ? "&plusmn;" : `${-b}&nbsp;&plusmn;&nbsp;`) + sqrtFracString(radic, coeff, i, denom), a2),
+			"<i><b>TO BE IMPLEMENTED</b></i>")
+	}
+
+	document.body.appendChild(results)
+}
+update()
+globalThis["solve"]()
+// returns [[radicand, [coefficient, imaginary (bool)]], denominator]
+function simplifySqrtFrac(numerator, denominator = 1) {
+	if (numerator == 0)
+		return [[0, [0, false]], 0]
+	if (denominator == 0)
+		throw "division by 0";
+
+	[numerator, denominator] = reduce(numerator, denominator)
+	var imaginary = false
+	if (denominator == 1) {
+		if (numerator < 0) {
+			imaginary = true
+			numerator = -numerator
+		}
+		var [numerRadic, numerCoeff] = simplifySqrt(numerator)
+		return [[numerRadic, [numerCoeff, imaginary]], 1]
+	}
+	if ((numerator < 0 && denominator > 0) || (numerator > 0 && denominator < 0)) // imaginary if only one is < 0
+		imaginary = true
+	numerator = Math.abs(numerator)
+	denominator = Math.abs(denominator)
+	var [denomRadic, denomCoeff] = simplifySqrt(denominator)
+	var denom = denomCoeff
+	if (denomRadic != 1) {
+		numerator *= denomRadic
+		denom *= denomRadic
+	}
+	var [numerRadic, numerCoeff] = simplifySqrt(numerator)
+	var [reducedN, reducedD] = reduce(numerCoeff, denom)
+	return [[numerRadic, [reducedN, imaginary]], reducedD]
+}
+// returns [radicand, coefficient]; if coefficient or radicand is one, it can be safely ignored
+function simplifySqrt(radicand) {
+	if (radicand < 0 || !Number.isInteger(radicand))
+		throw `radicand ${radicand} is less than 0 or not an integer!`
+	var sqrt = Math.sqrt(radicand)
+	if (Number.isInteger(sqrt))
+		return [1, sqrt] // sqrt is already a whole number
+	var coefficient = 1
+	while (radicand % 4 == 0) { // check 2 first
+		coefficient *= 2
+		radicand /= 4
+	}
+	while (radicand % 9 == 0) { // check 3 first
+		coefficient *= 3
+		radicand /= 9
+	}
+	// iterates through numbers and if the radicand is divisible by its square, move it to the coefficient
+	for (let i = 5;; i += 2) { // skips 2s cuz we checked already
+		if (i % 3 == 0) continue // skip 3s
+		let iSqr = i * i
+		if (iSqr >= radicand) break // break if over
+		while (radicand % iSqr == 0) {
+			coefficient *= i
+			radicand /= iSqr
+		}
+	}
+	return [radicand, coefficient]
+}
+function sqrtText(radicand, coefficient = "") {
+	if (coefficient === 0)
+		return 0
+	if (radicand == 1)
+		return coefficient
+	if (coefficient === 1)
+		coefficient = ""
+	return `${coefficient}<span class="sqrt"><span class="radicand">${radicand}</span></span>`
+}
+function reduce(numerator, denominator) {
+	if (denominator == 1)
+		return [numerator, 1]
+	while (!Number.isInteger(numerator) || !Number.isInteger(denominator)) {
+		numerator *= 10
+		denominator *= 10
+	}
+	var a = numerator, b = denominator, c
+	while (b) {
+		c = a % b
+		a = b
+		b = c
+	}
+	return [numerator / a, denominator / a]
+}
+// adapted from https://stackoverflow.com/a/14011299
+function toFraction(x) { // returns [numerator, denominator]
+	if (Number.isInteger(x) || isNaN(x))
+		return [x, 1]
+
+	var epsilon = Math.ceil(Math.abs(x)) * Number.EPSILON
+	var h = Math.floor(x), h1 = 1, h2, k = 1, k1 = 0, k2, a = h, xOld = x
+
+	while (x - a > epsilon * k * k) { // 10 decimal digits
+		x = 1 / (x - a)
+		a = Math.floor(x)
+		h2 = h1; h1 = h
+		k2 = k1; k1 = k
+		h = h2 + a * h1
+		k = k2 + a * k1
+	}
+
+	if (h / k != xOld)
+		console.log("toFraction returned incorrect results! Difference:", (h / k) - xOld)
+	return [h, k]
+}
+function fancyFraction(numerator, denominator) { // stylizes a fraction
+	if (denominator == 1)
+		return numerator
+	var negative = false
+	if (numerator < 0) {
+		negative = denominator > 0
+		numerator = -numerator
+	}
+	if (denominator < 0) {
+		negative = numerator > 0
+		denominator = -denominator
+	}
+	return fraction(numerator, denominator, negative ? "&minus; " : "")
+}
+function fraction(numerator, denominator, left = "") {
+	return `${left}<span class="frac"><sup>${numerator}</sup><span>&frasl;</span><sub>${denominator}</sub></span>`
+}
+function truncate(x) { // truncates numbers to 14 digits
+	var str = x.toString()
+	return str.length > 14 ? str.substring(0, 14) + '...' : str
+}
+function sqrtFracString(radicand, coeff, imaginary, denominator) {
+	if (coeff == 1) coeff = ""
+	if (imaginary) coeff += "<var>i</var>"
+	return fancyFraction(sqrtText(radicand, coeff), denominator)
+}
+function addChildList(element, ...texts) {
+	for (const text of texts)
+		if (text) {
+			var li = document.createElement("li")
+			element.appendChild(li)
+			li.innerHTML = text
+		}
+}
+function connect(...texts) {
+	return texts.join('<span style="margin-inline:.5em">and</span>')
+}
+const imaginaryText = "<var>i</var>"
+function withImaginary(number, imaginary) {
+	return imaginary ? (number == 1 ? imaginaryText : number + imaginaryText) : number
+}
+		</script>
+	</body>
+</html>
