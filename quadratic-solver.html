@@ -88,15 +88,13 @@ function equation(inside) {
 		s += '&nbsp;&minus; ' + fancyFraction(-c[0], c[1])
 	return s
 }
-function update() {
-	document.getElementById('equation').innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation('<var>x</var>')
-}
 globalThis["updateInput"] = function(input, onFail) {
 	var name = input.id
 	var v = parseFraction(input.value)
 	var warning = document.getElementById("warning" + name.toUpperCase())
 	if (!v || (name == "a" && v[0] == 0)) {
 		if (!warning) {
+			input.nextSibling?.remove()
 			warning = document.createElement("span")
 			warning.id = "warning" + name.toUpperCase()
 			warning.className = "warning"
@@ -106,16 +104,18 @@ globalThis["updateInput"] = function(input, onFail) {
 		if (onFail)
 			onFail(input)
 	} else {
-		globalThis[name] = v
-		warning?.remove()
-		update()
+		globalThis[name] = v;
+		(warning ?? input.nextSibling)?.remove()
+		document.getElementById('equation').innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation('<var>x</var>')
+		if (v[1] != 1)
+			input.after(" = " + truncate(v[0] / v[1]))
 	}
 }
 globalThis["a"] = [1, 1]
-globalThis["updateInput"](document.getElementById("a"), globalThis["resetInput"])
 globalThis["b"] = [0, 1]
-globalThis["updateInput"](document.getElementById("b"), globalThis["resetInput"])
 globalThis["c"] = [0, 1]
+globalThis["updateInput"](document.getElementById("a"), globalThis["resetInput"])
+globalThis["updateInput"](document.getElementById("b"), globalThis["resetInput"])
 globalThis["updateInput"](document.getElementById("c"), globalThis["resetInput"])
 const quadraticFormula = fraction('-<var>b</var>&nbsp;&plusmn;&nbsp;' + sqrtText('<var>b</var><sup>2</sup>&nbsp;&minus;&nbsp;4<var>ac</var>'), '2<var>a</var>')
 const nb2a = fraction("<var>b</var>", "2<var>a</var>", "&minus;")
@@ -241,7 +241,6 @@ globalThis["solve"] = function solve() {
 
 	document.body.appendChild(results)
 }
-update()
 globalThis["solve"]()
 function addChildList(element, ...texts) {
 	for (const text of texts)

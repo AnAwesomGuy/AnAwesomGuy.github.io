@@ -33,11 +33,10 @@ function parseFraction(input) {
 				}
 			}
 		}
-	} else {
-		var number = +input
-		if (Number.isFinite(number))
-			return toFraction(number)
 	}
+	var number = +input
+	if (Number.isFinite(number))
+		return toFraction(number)
 	// return undefined
 }
 function parseIntOrNaN(string) {
@@ -342,7 +341,7 @@ function fractionCoefficient(frac, variable) {
 }
 function truncate(x) { // truncates numbers to 14 digits
 	var str = x.toString()
-	return str.length > 14 ? str.substring(0, 14) + '...' : str
+	return str.length > 12 ? str.substring(0, 12) + '...' : str
 }
 function sqrtFracString(radicand, coeff, imaginary, denominator) {
 	if (coeff == 1) coeff = ""
@@ -356,7 +355,7 @@ function withImaginary(number, imaginary) {
 			(number == -1 ?
 				"-" :
 				(Number.isFinite(number) ?
-					+number.toFixed(14) :
+					+number.toFixed(12) :
 					number)
 			) + "<var>i</var>"
 		) : number
