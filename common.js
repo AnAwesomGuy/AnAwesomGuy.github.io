@@ -15,12 +15,12 @@
 // returns [numerator, denominator] (reduced) or null if invalid
 // input should be in the style of (in parens are optional): (integer )numerator(/denominator)
 function parseFraction(input) {
-	if (typeof input === 'string') {
+	if (typeof input === "string") {
 		if (!input)
 			return // undefined
-		var split = input.split('/')
+		var split = input.split("/")
 		if (split.length == 2) {
-			var first = split[0].trim().split(' ')
+			var first = split[0].trim().split(" ")
 			var first0 = parseIntOrNaN(first[0])
 			var denominator = parseIntOrNaN(split[1])
 			if (isFinite(first0) && denominator != 0 && isFinite(denominator)) {
@@ -167,7 +167,7 @@ function sqrtText(radicand, coefficient = "") {
 	if (coefficient === 0)
 		return 0
 	if (radicand == 1)
-		return coefficient
+		return coefficient === "" ? 1 : coefficient // if coefficient is an empty string return 1
 	if (coefficient === 1)
 		coefficient = ""
 	return coefficient + `<span class="sqrt"><span class="radicand">${radicand}</span></span>`
@@ -205,15 +205,38 @@ function gcd(a, b) {
 	}
 	return a
 }
-// adapted from https://stackoverflow.com/a/14011299
-// returns [numerator, denominator]
+/*
+adapted from https://stackoverflow.com/a/14011299
+returns [numerator, denominator]
+uses continuous fractions to find fraction equivalent
+
+for example, 2.4:
+2 +   1     // 12 is from floor(12), with 0.4 left over
+    -----
+    2 + 1   // 2 is from floor(1/0.4), with 0.5 left over
+        -
+        2   // 2 is from 1/0.5
+now, we can calculate the total fraction from here: 12/5
+
+another example: 21.76923076923077
+21 +      1        // 0.76923076923077 left
+     -----------
+     1 +    1      // 1/0.76923076923077 = 1.3
+         -------
+         3 +  1    // 1/0.3 = 3.33333333...
+             ---
+              3    // 1/0.33333333... = 3
+result: [21,1,3,3]
+the total denominator is the last two multiplied + 1 = 3*3+1 = 13
+the result is 283/13
+*/
 function toFraction(x, epsilon = Number.EPSILON) {
 	x = +x
 	if (Number.isInteger(x) || !Number.isFinite(x))
 		return [x, 1]
 
 	var h = Math.floor(x), h1 = 1, h2, k = 1, k1 = 0, k2, a = h, xOld = x
-	var epsilon = (Math.abs(a) + 1) * epsilon
+	epsilon *= Math.abs(a) + 1
 
 	while (x - a > epsilon * k * k) {
 		x = 1 / (x - a)
@@ -320,12 +343,12 @@ function fractionCoefficient(frac, variable) {
 	} else
 		[numerator, denominator] = frac
 	if (numerator == 0)
-		return '';
+		return "";
 	if (denominator == 1) {
 		if (numerator == 1)
 			return variable
 		if (numerator == -1)
-			return '- ' + variable
+			return "&minus;" + variable
 		return numerator + variable
 	}
 	var negative = false
@@ -337,11 +360,11 @@ function fractionCoefficient(frac, variable) {
 		negative = numerator > 0
 		denominator = -denominator
 	}
-	return fraction(numerator, denominator, negative ? "&minus; " : "") + variable
+	return fraction(numerator, denominator, negative ? "&minus;" : "") + variable
 }
 function truncate(x) { // truncates numbers to 14 digits
 	var str = x.toString()
-	return str.length > 12 ? str.substring(0, 12) + '...' : str
+	return str.length > 12 ? str.substring(0, 12) + "..." : str
 }
 function sqrtFracString(radicand, coeff, imaginary, denominator) {
 	if (coeff == 1) coeff = ""

@@ -52,7 +52,7 @@ h2 > span {
 			<p>
 				<var>f</var>&nbsp;(<var>x</var>) = <var>ax</var><sup>2</sup> + <var>bx</var> + <var>c</var>
 			</p>
-			<p id="equation"/>
+			<p id="equation"></p>
 		</div>
 		<p>
 			<var>a</var> = <input id="a" oninput="updateInput(this)" onblur="resetInput(this)" onchange="solve()" />
@@ -64,28 +64,27 @@ h2 > span {
 		<div id="results"></div>
 		<script src="common.js"></script>
 		<script>
-globalThis["resetInput"] = function resetInput(input) {
+globalThis["resetInput"] = function(input) {
 	var name = input.id
 	document.getElementById("warning" + name.toUpperCase())?.remove()
 	input.value = simpleFracText(...globalThis[name])
 }
 function equation(inside) {
 	var b = globalThis["b"], c = globalThis["c"]
+	var s = ""
 
-	var s = ''
-
-	if (a[0] != 0)
+	if (globalThis["a"][0] != 0)
 		s += fractionCoefficient(globalThis["a"], inside + "<sup>2</sup>")
 
 	if (b[0] > 0)
-		s += b[0] == 1 ? '&nbsp;+ ' + inside : '&nbsp;+ ' + fractionCoefficient(b, inside)
+		s += b[1] == 1 ? "&nbsp;+ " + inside : "&nbsp;+ " + fractionCoefficient(b, inside)
 	else if (b[0] < 0)
-		s += b[0] == -1 ? '&nbsp;&minus; ' + inside : '&nbsp;&minus; ' + fractionCoefficient([-b[0], b[1]], inside)
+		s += b[1] == 1 ? "&nbsp;&minus; " + inside : "&nbsp;&minus; " + fractionCoefficient([-b[0], b[1]], inside)
 
 	if (c[0] > 0)
-		s += '&nbsp;+ ' + fancyFraction(...c)
+		s += "&nbsp;+ " + fancyFraction(...c)
 	else if (c[0] < 0)
-		s += '&nbsp;&minus; ' + fancyFraction(-c[0], c[1])
+		s += "&nbsp;&minus; " + fancyFraction(-c[0], c[1])
 	return s
 }
 globalThis["updateInput"] = function(input, onFail) {
@@ -101,25 +100,42 @@ globalThis["updateInput"] = function(input, onFail) {
 			warning.innerHTML = ` Invalid value for <var>${name}</var>!`
 			input.after(warning)
 		}
-		if (onFail)
-			onFail(input)
+		onFail?.(input)
 	} else {
 		globalThis[name] = v;
 		(warning ?? input.nextSibling)?.remove()
-		document.getElementById('equation').innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation('<var>x</var>')
+		setEquation()
 		if (v[1] != 1)
 			input.after(" = " + truncate(v[0] / v[1]))
 	}
 }
-globalThis["a"] = [1, 1]
-globalThis["b"] = [0, 1]
-globalThis["c"] = [0, 1]
-globalThis["updateInput"](document.getElementById("a"), globalThis["resetInput"])
-globalThis["updateInput"](document.getElementById("b"), globalThis["resetInput"])
-globalThis["updateInput"](document.getElementById("c"), globalThis["resetInput"])
-const quadraticFormula = fraction('-<var>b</var>&nbsp;&plusmn;&nbsp;' + sqrtText('<var>b</var><sup>2</sup>&nbsp;&minus;&nbsp;4<var>ac</var>'), '2<var>a</var>')
+function setEquation() {
+	document.getElementById("equation").innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation("<var>x</var>")
+}
+function initialize(name, initial) {
+	var input = document.getElementById(name)
+	var value = input.value
+	var frac
+	if (value) {
+		frac = parseFraction(value)
+		if (!frac)
+			frac = [initial, 1]
+		else if (frac[1] != 1)
+			input.after(" = " + truncate(frac[0] / frac[1]))
+	} else
+		frac = [initial, 1]
+	globalThis[name] = frac
+	globalThis["resetInput"](input)
+}
+initialize("a", 1)
+initialize("b", 0)
+initialize("c", 0)
+setEquation()
+
+// code for solving stuff below
+const quadraticFormula = fraction("-<var>b</var>&nbsp;&plusmn;&nbsp;" + sqrtText("<var>b</var><sup>2</sup>&nbsp;&minus;&nbsp;4<var>ac</var>"), "2<var>a</var>")
 const nb2a = fraction("<var>b</var>", "2<var>a</var>", "&minus;")
-globalThis["solve"] = function solve() {
+globalThis["solve"] = function() {
 	var a = globalThis["a"], b = globalThis["b"], c = globalThis["c"]
 	var aStr = fancyFraction(...a), bStr = fancyFraction(...b)
 	var results = document.getElementById("results")
@@ -136,7 +152,7 @@ globalThis["solve"] = function solve() {
 	var negBStr = fancyFraction(...negB), a2Str = fancyFraction(...a2)
 	var h = divFrac(negB, a2)
 	var hStr = fancyFraction(...h), truncH = toDecimalString(h), intH = isInteger(h)
-	vertex1.innerHTML = nb2a + fraction(bStr, `2(${aStr})`, ' =&nbsp;&minus;(') + ') =&nbsp;' + hStr
+	vertex1.innerHTML = nb2a + fraction(bStr, `2(${aStr})`, " =&nbsp;&minus;(") + ") =&nbsp;" + hStr
 	if (!intH)
 		vertex1.innerHTML += " =&nbsp;" + truncH
 	var vertex2 = document.createElement("p")
@@ -145,7 +161,7 @@ globalThis["solve"] = function solve() {
 	var kStr = fancyFraction(...k), truncK = toDecimalString(k), intK = isInteger(k)
 	vertex2.innerHTML = `<var>f</var>&nbsp;(${nb2a}) =&nbsp;${equation(`(${hStr})`)} =&nbsp;` + kStr
 	if (!intK)
-		vertex2.innerHTML += '=&nbsp;' + truncK
+		vertex2.innerHTML += "=&nbsp;" + truncK
 	var vertex = document.createElement("p")
 	vertex1.before(vertex)
 	vertex.innerHTML = `The vertex is at: <b>(${hStr}, ${kStr})</b>`
@@ -156,29 +172,26 @@ globalThis["solve"] = function solve() {
 	var headingZ = document.createElement("h2")
 	results.appendChild(headingZ)
 	headingZ.innerText = "Zeros (roots)"
-	// var note = document.createElement("span")
-	// note.innerHTML = '<span class="hidden">; note: </span>results, especially fractions, may be slightly innaccurate due to floating-point errors'
-	// headingZ.appendChild(note)
 	headingZ.appendChild(document.createElement("hr"))
-	var zeros1 = document.createElement("ul")
-	headingZ.after(zeros1)
+	var zeros = document.createElement("ul")
+	zeros.innerHTML = '<var style="display:table-cell">x</var><span class="hidden"> =<br></span>'
+	headingZ.after(zeros)
 	var discriminant = subFrac(mulFrac(b, b), mulFrac(4, a, c))
-	zeros1.innerHTML = '<var style="display:table-cell">x</var><span class="hidden"> =<br></span>'
-	addChildList(zeros1,
+	addChildList(zeros,
 		quadraticFormula,
 		fraction(`-(${bStr})&nbsp;&plusmn;&nbsp;` + sqrtText(`(${bStr})<sup>2</sup>&nbsp;&minus;&nbsp;4(${aStr})(${fancyFraction(...c)})`), `2(${aStr})`))
 	if (isInteger(discriminant)) {
 		if (!discriminant[0]) { // if the discriminant is 0, the zero is at the vertex
-			addChildList(zeros1, hStr)
+			addChildList(zeros, hStr)
 			if (!intH)
-				addChildList(zeros1, truncH)
+				addChildList(zeros, truncH)
 		} else {
 			var [[radic, coeff, imaginary], denom] = simplifySqrtFrac(...discriminant)
-			addChildList(zeros1, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(fancyFraction(...discriminant))}`, a2Str))
+			addChildList(zeros, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(fancyFraction(...discriminant))}`, a2Str))
 			if (radic == 1 && !imaginary) { // result is rational (only one term)
 				var coeffB = addFrac(negB, coeff), bCoeff = subFrac(negB, coeff)
 				var reduced1 = divFrac(coeffB, a2), reduced2 = divFrac(bCoeff, a2)
-				addChildList(zeros1,
+				addChildList(zeros,
 					fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${coeff}`, a2Str),
 					connect(
 						fraction(fancyFraction(...coeffB), a2Str),
@@ -189,57 +202,55 @@ globalThis["solve"] = function solve() {
 						fancyFraction(...reduced2)
 					))
 				if (reduced1[1] != 1 || reduced2[1] != 1) {
-					zeros1.classList.add("long-zeros")
-					addChildList(zeros1, connect(reduced1[0] / reduced1[1], reduced2[0] / reduced2[1]))
+					zeros.classList.add("long-zeros")
+					addChildList(zeros, connect(reduced1[0] / reduced1[1], reduced2[0] / reduced2[1]))
 				}
 			} else {
 				var a2Abs = abs(a2), a2AbsStr = fancyFraction(...a2Abs)
 				var frac2 = divFrac(coeff, a2Abs), frac2Text = withImaginary(fancyFraction(...frac2), imaginary), frac2SqrtText = sqrtText(radic, frac2Text)
 				var frac2Num = frac2[0] / frac2[1] * Math.sqrt(radic)
-				addChildList(zeros1, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(radic, withImaginary(coeff, imaginary))}`, a2Str))
+				addChildList(zeros, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(radic, withImaginary(coeff, imaginary))}`, a2Str))
 				if (b[0]) {
-					zeros1.classList.add("long-zeros")
+					zeros.classList.add("long-zeros")
 					var frac1 = divFrac(negB, a2Abs), frac1Text = fancyFraction(...frac1), frac1Num = (negB[0] * a2Abs[1]) / (negB[1] * a2Abs[0])
-					addChildList(zeros1,
+					addChildList(zeros,
 						connect(`${frac1Text} + ${frac2SqrtText}`, `${frac1Text} &minus; ${frac2SqrtText}`),
 						imaginary ? connect(`${frac1Num} + ${withImaginary(frac2Num, true)}`, `${frac1Num} &minus; ${withImaginary(frac2Num, true)}`) :
-								connect(frac1Num + frac2Num, frac1Num - frac2Num)
+							connect(frac1Num + frac2Num, frac1Num - frac2Num)
 					)
 				} else { // b is 0, so we omit the first fraction
-					addChildList(zeros1, connect(frac2SqrtText, sqrtText(radic, `&minus;${frac2Text}`)))
+					addChildList(zeros, connect(frac2SqrtText, sqrtText(radic, `&minus;${frac2Text}`)))
 					if (frac2[1] != 1 || radic != 1) {
-						zeros1.classList.add("long-zeros")
-						addChildList(zeros1, connect(withImaginary(-frac2Num, imaginary), withImaginary(frac2Num, imaginary)))
+						zeros.classList.add("long-zeros")
+						addChildList(zeros, connect(withImaginary(-frac2Num, imaginary), withImaginary(frac2Num, imaginary)))
 					}
 				}
 			}
 		}
 	} else {
-		zeros1.classList.add("long-zeros")
+		zeros.classList.add("long-zeros")
 		var [[radic, coeff, i], denom] = simplifySqrtFrac(...discriminant)
-		addChildList(zeros1, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(fancyFraction(...discriminant))}`, a2Str))
+		addChildList(zeros, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(fancyFraction(...discriminant))}`, a2Str))
 		var rightFrac = divFrac([coeff, denom], a2), rightFracNum = (rightFrac[0] * Math.sqrt(radic)) / rightFrac[1]
 		if (b[0]) {
-			addChildList(zeros1, fraction(negBStr + '&nbsp;&plusmn;&nbsp;' + sqrtFracString(radic, coeff, i, denom), a2Str))
+			addChildList(zeros, fraction(negBStr + "&nbsp;&plusmn;&nbsp;" + sqrtFracString(radic, coeff, i, denom), a2Str))
 			coeff = rightFrac[0]
 			denom = rightFrac[1]
 			var newNegB = divFrac(negB, a2)
 			var newNegBNum = newNegB[0] / newNegB[1]
-			addChildList(zeros1,
-				fancyFraction(...newNegB) + '&nbsp;&plusmn;&nbsp;' + sqrtFracString(radic, rightFrac[0], i, rightFrac[1]),
+			addChildList(zeros,
+				fancyFraction(...newNegB) + "&nbsp;&plusmn;&nbsp;" + sqrtFracString(radic, rightFrac[0], i, rightFrac[1]),
 				i ? connect(newNegBNum + " + " + withImaginary(Math.abs(rightFracNum), true), newNegBNum + " &minus; " + withImaginary(Math.abs(rightFracNum), true)) :
 					connect(newNegBNum + rightFracNum, newNegBNum - rightFracNum)
 			)
 		} else {
-			addChildList(zeros1, fraction("&plusmn;" + sqrtFracString(radic, coeff, i, denom), a2Str))
-			addChildList(zeros1,
+			addChildList(zeros, fraction("&plusmn;" + sqrtFracString(radic, coeff, i, denom), a2Str))
+			addChildList(zeros,
 				"&plusmn;" + sqrtFracString(radic, rightFrac[0], i, rightFrac[1]),
 				connect(withImaginary(-rightFracNum, imaginary), withImaginary(rightFracNum, imaginary))
 			)
 		}
 	}
-
-	document.body.appendChild(results)
 }
 globalThis["solve"]()
 function addChildList(element, ...texts) {
