@@ -77,9 +77,9 @@ function equation(inside) {
 		s += fractionCoefficient(globalThis["a"], inside + "<sup>2</sup>")
 
 	if (b[0] > 0)
-		s += b[1] == 1 ? "&nbsp;+ " + inside : "&nbsp;+ " + fractionCoefficient(b, inside)
+		s += "&nbsp;+ " + fractionCoefficient(b, inside)
 	else if (b[0] < 0)
-		s += b[1] == 1 ? "&nbsp;&minus; " + inside : "&nbsp;&minus; " + fractionCoefficient([-b[0], b[1]], inside)
+		s += "&nbsp;&minus; " + fractionCoefficient([-b[0], b[1]], inside)
 
 	if (c[0] > 0)
 		s += "&nbsp;+ " + fancyFraction(...c)
