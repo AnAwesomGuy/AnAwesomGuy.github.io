@@ -206,23 +206,23 @@ globalThis["solve"] = function() {
 					addChildList(zeros, connect(reduced1[0] / reduced1[1], reduced2[0] / reduced2[1]))
 				}
 			} else {
-				var a2Abs = abs(a2), a2AbsStr = fancyFraction(...a2Abs)
-				var frac2 = divFrac(coeff, a2Abs), frac2Text = withImaginary(fancyFraction(...frac2), imaginary), frac2SqrtText = sqrtText(radic, frac2Text)
+				var frac2 = divFrac(coeff, a2), frac2Text = withImaginary(fancyFraction(...frac2), imaginary), frac2SqrtText = sqrtText(radic, frac2Text)
 				var frac2Num = frac2[0] / frac2[1] * Math.sqrt(radic)
 				addChildList(zeros, fraction(`${negBStr}&nbsp;&plusmn;&nbsp;${sqrtText(radic, withImaginary(coeff, imaginary))}`, a2Str))
 				if (b[0]) {
 					zeros.classList.add("long-zeros")
-					var frac1 = divFrac(negB, a2Abs), frac1Text = fancyFraction(...frac1), frac1Num = (negB[0] * a2Abs[1]) / (negB[1] * a2Abs[0])
+					var frac1 = divFrac(negB, a2), frac1Text = fancyFraction(...frac1), frac1Num = (negB[0] * a2[1]) / (negB[1] * a2[0])
 					addChildList(zeros,
-						connect(`${frac1Text} + ${frac2SqrtText}`, `${frac1Text} &minus; ${frac2SqrtText}`),
-						imaginary ? connect(`${frac1Num} + ${withImaginary(frac2Num, true)}`, `${frac1Num} &minus; ${withImaginary(frac2Num, true)}`) :
+						`${frac1Text} &plusmn; ${frac2SqrtText}`,
+						imaginary ?
+							`${frac1Num} &plusmn; ${withImaginary(frac2Num, true)}` :
 							connect(frac1Num + frac2Num, frac1Num - frac2Num)
 					)
 				} else { // b is 0, so we omit the first fraction
-					addChildList(zeros, connect(frac2SqrtText, sqrtText(radic, `&minus;${frac2Text}`)))
+					addChildList(zeros, sqrtText(radic, `&plusmn;${frac2Text}`))
 					if (frac2[1] != 1 || radic != 1) {
 						zeros.classList.add("long-zeros")
-						addChildList(zeros, connect(withImaginary(-frac2Num, imaginary), withImaginary(frac2Num, imaginary)))
+						addChildList(zeros, `&plusmn;${withImaginary(frac2Num, imaginary)}`)
 					}
 				}
 			}
