@@ -289,7 +289,7 @@ for (var name in inputs) {
 		
 		var frac = addFrac(globalThis[name], change)
 		if (name == 'a' && frac[0] == 0) {
-			frac = addFrac(globalThis[name], change) // skip over a=0
+			frac = addFrac(frac, change) // skip over a=0
 		} else if (frac[1] != 1) {
 			input.nextSibling?.remove()
 			input.after(" = " + truncate(frac[0] / frac[1])) // add decimal form of fraction
