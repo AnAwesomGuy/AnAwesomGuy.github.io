@@ -52,7 +52,7 @@ function simplifySqrtFrac(numerator, denominator = 1) {
 		return [[0, 0, false], 1]
 	if (denominator == 0)
 		throw "division by 0";
-
+	
 	[numerator, denominator] = reduce(numerator, denominator)
 	var imaginary = false
 	if (denominator == 1) {
@@ -142,6 +142,8 @@ function ipow(base, exponent) {
 		throw `negative or non-integer exponent ${exponent}`
 	if (!Number.isInteger(base))
 		throw `non-integer base ${base}`
+	return base ** exponent
+	
 	switch (base) {
 		case 0:
 			return (exponent === 0) ? 1 : 0
@@ -234,10 +236,10 @@ function toFraction(x, epsilon = Number.EPSILON) {
 	x = +x
 	if (Number.isInteger(x) || !Number.isFinite(x))
 		return [x, 1]
-
+	
 	var h = Math.floor(x), h1 = 1, h2, k = 1, k1 = 0, k2, a = h, xOld = x
 	epsilon *= Math.abs(a) + 1
-
+	
 	while (x - a > epsilon * k * k) {
 		x = 1 / (x - a)
 		a = Math.floor(x)
@@ -246,7 +248,7 @@ function toFraction(x, epsilon = Number.EPSILON) {
 		h = h2 + a * h1
 		k = k2 + a * k1
 	}
-
+	
 	if (h / k != xOld)
 		console.log("toFraction returned incorrect results! Difference:", (h / k) - xOld)
 	return [h, k]

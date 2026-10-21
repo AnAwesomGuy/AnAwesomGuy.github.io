@@ -55,92 +55,59 @@ h2 > span {
 			<p id="equation"></p>
 		</div>
 		<p>
-			<var>a</var> = <input id="a" oninput="updateInput(this)" onblur="resetInput(this)" onchange="solve()" />
+			<var>a</var> = <input id="a" />
 		<hr><p>
-			<var>b</var> = <input id="b" oninput="updateInput(this)" onblur="resetInput(this)" onchange="solve()" />
+			<var>b</var> = <input id="b" />
 		<hr><p>
-			<var>c</var> = <input id="c" oninput="updateInput(this)" onblur="resetInput(this)" onchange="solve()" />
+			<var>c</var> = <input id="c" />
 		<hr>
 		<div id="results"></div>
 		<script src="common.js"></script>
 		<script>
-globalThis["resetInput"] = function(input) {
-	var name = input.id
-	document.getElementById("warning" + name.toUpperCase())?.remove()
-	input.value = simpleFracText(...globalThis[name])
-}
 function equation(inside) {
-	var b = globalThis["b"], c = globalThis["c"]
+	var { a, b, c } = globalThis
 	var s = ""
-
-	if (globalThis["a"][0] != 0)
-		s += fractionCoefficient(globalThis["a"], inside + "<sup>2</sup>")
-
+	
+	if (a[0] != 0)
+		s += fractionCoefficient(a, inside + "<sup>2</sup>")
+	
 	if (b[0] > 0)
 		s += "&nbsp;+ " + fractionCoefficient(b, inside)
 	else if (b[0] < 0)
 		s += "&nbsp;&minus; " + fractionCoefficient([-b[0], b[1]], inside)
-
+	
 	if (c[0] > 0)
 		s += "&nbsp;+ " + fancyFraction(...c)
 	else if (c[0] < 0)
 		s += "&nbsp;&minus; " + fancyFraction(-c[0], c[1])
 	return s
 }
-globalThis["updateInput"] = function(input, onFail) {
-	var name = input.id
-	var v = parseFraction(input.value)
-	var warning = document.getElementById("warning" + name.toUpperCase())
-	if (!v || (name == "a" && v[0] == 0)) {
-		if (!warning) {
-			input.nextSibling?.remove()
-			warning = document.createElement("span")
-			warning.id = "warning" + name.toUpperCase()
-			warning.className = "warning"
-			warning.innerHTML = ` Invalid value for <var>${name}</var>!`
-			input.after(warning)
-		}
-		onFail?.(input)
-	} else {
-		globalThis[name] = v;
-		(warning ?? input.nextSibling)?.remove()
-		setEquation()
-		if (v[1] != 1)
-			input.after(" = " + truncate(v[0] / v[1]))
-	}
-}
 function setEquation() {
 	document.getElementById("equation").innerHTML = `<var>f</var>&nbsp;(<var>x</var>)&nbsp;= ` + equation("<var>x</var>")
 }
-function initialize(name, initial) {
-	var input = document.getElementById(name)
-	var value = input.value
-	var frac
-	if (value) {
-		frac = parseFraction(value)
-		if (!frac)
-			frac = [initial, 1]
-		else if (frac[1] != 1)
-			input.after(" = " + truncate(frac[0] / frac[1]))
-	} else
-		frac = [initial, 1]
-	globalThis[name] = frac
-	globalThis["resetInput"](input)
-}
-initialize("a", 1)
-initialize("b", 0)
-initialize("c", 0)
-setEquation()
 
 // code for solving stuff below
+
+function addChildList(element, ...texts) {
+	for (const text of texts)
+		if (text !== null || text !== "") {
+			var li = document.createElement("li")
+			element.appendChild(li)
+			li.innerHTML = text
+		}
+}
+function connect(...texts) {
+	return texts.join(`<span style="margin-inline:.5em">and</span>`)
+}
+
 const quadraticFormula = fraction("-<var>b</var>&nbsp;&plusmn;&nbsp;" + sqrtText("<var>b</var><sup>2</sup>&nbsp;&minus;&nbsp;4<var>ac</var>"), "2<var>a</var>")
 const nb2a = fraction("<var>b</var>", "2<var>a</var>", "&minus;")
-globalThis["solve"] = function() {
-	var a = globalThis["a"], b = globalThis["b"], c = globalThis["c"]
+function solve() {
+	var { a, b, c } = globalThis
 	var aStr = fancyFraction(...a), bStr = fancyFraction(...b)
 	var results = document.getElementById("results")
 	results.replaceChildren()
-
+	
 	// vertex
 	var headingV = document.createElement("h2")
 	results.appendChild(headingV)
@@ -167,14 +134,14 @@ globalThis["solve"] = function() {
 	vertex.innerHTML = `The vertex is at: <b>(${hStr}, ${kStr})</b>`
 	if (!intH || !intK)
 		vertex.innerHTML += ` or <b>(${truncH}, ${truncK})</b>`
-
+	
 	// zeros
 	var headingZ = document.createElement("h2")
 	results.appendChild(headingZ)
 	headingZ.innerText = "Zeros (roots)"
 	headingZ.appendChild(document.createElement("hr"))
 	var zeros = document.createElement("ul")
-	zeros.innerHTML = '<var style="display:table-cell">x</var><span class="hidden"> =<br></span>'
+	zeros.innerHTML = `<var style="display:table-cell">x</var><span class="hidden"> =<br></span>`
 	headingZ.after(zeros)
 	var discriminant = subFrac(mulFrac(b, b), mulFrac(4, a, c))
 	addChildList(zeros,
@@ -252,18 +219,76 @@ globalThis["solve"] = function() {
 		}
 	}
 }
-globalThis["solve"]()
-function addChildList(element, ...texts) {
-	for (const text of texts)
-		if (text !== null || text !== "") {
-			var li = document.createElement("li")
-			element.appendChild(li)
-			li.innerHTML = text
+
+// setup page
+var inputs = { "a": 1, "b": 0, "c": 0 }
+for (var name in inputs) {
+	var input = document.getElementById(name)
+	
+	// initialize
+	var initial = inputs[name]
+	var value = input.value
+	var frac
+	if (value) {
+		frac = parseFraction(value)
+		if (!frac)
+			frac = [initial, 1]
+		else if (frac[1] != 1)
+			input.after("&nbsp;= " + truncate(frac[0] / frac[1]))
+	} else
+		frac = [initial, 1]
+	globalThis[name] = frac
+	input.value = simpleFracText(...frac)
+	
+	// events
+	input.addEventListener("input", e => {
+		var input = e.target
+		var name = input.id
+		var v = parseFraction(input.value)
+		var warning = document.getElementById("warning" + name.toUpperCase())
+		if (!v || (name == "a" && v[0] == 0)) {
+			if (!warning) {
+				input.nextSibling?.remove()
+				warning = document.createElement("span")
+				warning.id = "warning" + name.toUpperCase()
+				warning.className = "warning"
+				warning.innerHTML = ` Invalid value for <var>${name}</var>!`
+				input.after(warning)
+			}
+		} else {
+			globalThis[name] = v;
+			(warning ?? input.nextSibling)?.remove()
+			setEquation()
+			if (v[1] != 1)
+				input.after(" = " + truncate(v[0] / v[1]))
 		}
+	})
+	input.addEventListener("blur", e => {
+		var input = e.target
+		var name = input.id
+		document.getElementById("warning" + name.toUpperCase())?.remove()
+		input.value = simpleFracText(...globalThis[name])
+	})
+	input.addEventListener("change", solve)
+	input.addEventListener("keydown", e => {
+		var input = e.target
+		var name = input.id
+		if (document.getElementById("warning" + name.toUpperCase()))
+			return
+		
+		var frac = globalThis[name]
+		if (e.key == "ArrowUp")
+			frac = addFrac(frac, 1)
+		else if (e.key == "ArrowDown")
+			frac = subFrac(frac, 1)
+		
+		globalThis[name] = frac
+		input.value = simpleFracText(...frac)
+		setEquation()
+	})
 }
-function connect(...texts) {
-	return texts.join('<span style="margin-inline:.5em">and</span>')
-}
+setEquation()
+solve()
 		</script>
 	</body>
 </html>
