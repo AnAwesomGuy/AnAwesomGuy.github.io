@@ -144,6 +144,7 @@ function ipow(base, exponent) {
 		throw `non-integer base ${base}`
 	return base ** exponent
 	
+	/* not super useful really, just use the above
 	switch (base) {
 		case 0:
 			return (exponent === 0) ? 1 : 0
@@ -164,6 +165,7 @@ function ipow(base, exponent) {
 		accum *= ((exponent & 1) == 0) ? 1 : base
 		base *= base
 	}
+	*/
 }
 function sqrtText(radicand, coefficient = "") {
 	if (coefficient === 0)
@@ -186,13 +188,13 @@ function reduce(numerator, denominator) {
 	denominator = +denominator
 	if (!Number.isFinite(numerator) || !Number.isFinite(denominator))
 		return [numerator, denominator] // return for non numbers or Infinity/NaN
-
+	
 	if (!Number.isInteger(numerator) || !Number.isInteger(denominator)) {
 		var fraction = divFrac(toFraction(numerator), toFraction(denominator))
 		numerator = fraction[0]
 		denominator = fraction[1]
 	}
-
+	
 	var n = Math.abs(gcd(numerator, denominator))
 	if (denominator < 0)
 		n = -n
